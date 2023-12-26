@@ -1,0 +1,23 @@
+# VS Code
+.vscode/
+.idea/
+
+# Visual studio
+.vs/
+
+# git folder
+.git/
+
+# Build artifact
+bin/
+obj/
+
+# generated files
+raw-sample/
+*.g.cs
+
+# Misc
+*.old
+omnisharp.json
+*.nettrace
+*.speedscope.json
