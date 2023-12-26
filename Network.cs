@@ -1,37 +1,21 @@
 public class Network
 {
-    private Dictionary<short, LinkedList<Packet>> _packets = new();
+    private Dictionary<ushort, Host> _portToHostMap = new();
 
-    public IEnumerable<short> OpenPorts => _packets.Keys;
-
-    public void Open(short port) {
-        if (!_packets.TryAdd(port, []))
-            throw new Exception($"Port {port} was already open");
-    }
-
-    public Packet? ConsumeMatchingPacket(short port, Func<Packet, bool> shouldConsume) {
-        var packets = GetPacketsForPort(port);
-
-        foreach (var p in packets) {
-            if (shouldConsume(p)) {
-                packets.Remove(p);
-                return p;
-            }
+    private void handlePacket(Packet p) {
+        if (!_portToHostMap.TryGetValue(p.DestPort, out var host)) {
+            Console.Error.WriteLine($"discarding packet to {p.DestPort}: port is not open");
+            return;
         }
 
-        return null;
+        host.PacketAvailable(p);
     }
 
-    private LinkedList<Packet> GetPacketsForPort(short port) {
-        if (!_packets.TryGetValue(port, out var packetList))
-            throw new Exception($"Port {port} is not open");
+    public Host Open(ushort port) {
+        var h = Host.Open(port, handlePacket);
+        if (!_portToHostMap.TryAdd(port, h))
+            throw new Exception($"Port {port} was already open");
 
-        return packetList;
+        return h;
     }
-
-    public IEnumerable<Packet> PeekPacketsForPort(short port)
-        => GetPacketsForPort(port);
-
-    public void PushPacket(Packet packet)
-        => GetPacketsForPort(packet.DestPort).AddFirst(packet);
 }
